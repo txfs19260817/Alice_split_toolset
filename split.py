@@ -32,7 +32,8 @@ def split_wav_by_srt(srt_path, wav_path, output_folder, sample_rate, mono, use_s
     with open(srt_path, 'r', encoding='utf-8') as file:
         content = file.read()
         blocks = content.strip().split("\n\n")
-        audio = AudioSegment.from_wav(wav_path)
+        file_extension = os.path.splitext(wav_path)[-1][1:]
+        audio = AudioSegment.from_file(wav_path, file_extension)
         prj_name = os.path.basename(wav_path)[:-4]
 
         for block in tqdm(blocks, desc=f"Processing {prj_name}"):
@@ -73,6 +74,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Split WAVs based on SRT timings in a folder")
     parser.add_argument("--input_folder", type=str, default="input", help="Path to the input folder containing SRT and WAV files")
     parser.add_argument("--output_folder", type=str, default="output", help="Output folder path")
+    parser.add_argument("--ext", type=str, default="wav", help="Audio file extension w/o dot. E.g., mp3, m4a")
     parser.add_argument("--sample_rate", type=int, default=44100, help="Sample rate for output WAVs")
     parser.add_argument("--mono", action="store_true", help="Convert to mono")
     parser.add_argument("--use_subtitle_as_name", action="store_true", help="Use subtitle as filename")
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     for root, dirs, files in os.walk(args.input_folder):
         for file in files:
             if file.endswith(".srt"):
-                wav_file = file.replace(".srt", ".wav")
+                wav_file = file.replace(".srt", "." + args.ext)
                 if wav_file in files:
                     split_wav_by_srt(os.path.join(root, file), os.path.join(root, wav_file), args.output_folder,
                                      args.sample_rate, args.mono, args.use_subtitle_as_name)
